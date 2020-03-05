@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby 
 require './reduce_sat.rb'
+require './new_assump.rb'
 
 # Assuming we are getting an input string in the proper CNF form.
 # This code will apply recursive decision and deduction techniques
@@ -45,8 +46,10 @@ require './reduce_sat.rb'
 # output variable is 1
   assump[fxn[0]] = 1
 
-  fxn = reduce_sat(assump, fxn)
-  puts fxn
+# Call reduce_sat method
+  while (!fxn.empty?)
+    fxn = reduce_sat(assump, fxn)
+    assump = new_assump(assump, fxn)
+  end # while
 
-
-  
+  puts("The following assumptions led to SAT: \n #{assump}")
