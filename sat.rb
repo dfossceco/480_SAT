@@ -37,7 +37,7 @@
     abort('The first term should be a single variable!')
   end
 
-# Create a hash of assumptions that we are going to use
+# Create a hash of assumptions that we are going to make
   assump = {}
 
 # Make our first assumption which will always be that the 
@@ -71,10 +71,14 @@
       end
 
       fxn[index] = term
+
     end # times do
   end # each do 
+
+  fxn.delete(1)
 
   puts
   puts(assump)
   puts
   puts(fxn)
+  puts(fxn.length)
