@@ -37,30 +37,41 @@
     abort('The first term should be a single variable!')
   end
 
-  puts(fxn)
 # Create a hash of assumptions that we are going to use
   assump = {}
 
 # Make our first assumption which will always be that the 
 # output variable is 1
   assump[fxn[0]] = 1
+  puts(fxn)
 
   assump.each do |key, value|
     fxn.length.times do |index|
-      if (fxn[index].include?('~'.concat(key)))
-        if (value == 0)
-          fxn[index] = 1
-        else 
-          fxn[index] = fxn[index].delete(key)
-        end # if
-      elsif (fxn[index].include?(key))
+
+      term = fxn[index].split('+')
+      not_key = '~'.concat(key)
+
+      # puts("Term number #{index}: #{term}")
+      if (term.include?(not_key))
         if (value == 1)
-          fxn[index] = 1
-        else 
-          fxn[index] = fxn[index].delete(key)
-        end # if
-      end # if
-    end # each do
+          term.delete(not_key)
+        else
+          term = 1
+        end
+      elsif (term.include?(key))
+        if (value == 0)
+          term.delete(key)
+        else
+          term = 1 
+        end
+      end
+
+      if (term.kind_of?(Array))
+        term = term.join('+')
+      end
+
+      fxn[index] = term
+    end # times do
   end # each do 
 
   puts
