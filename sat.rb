@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby 
+require './reduce_sat.rb'
 
 # Assuming we are getting an input string in the proper CNF form.
 # This code will apply recursive decision and deduction techniques
@@ -43,42 +44,9 @@
 # Make our first assumption which will always be that the 
 # output variable is 1
   assump[fxn[0]] = 1
-  puts(fxn)
 
-  assump.each do |key, value|
-    fxn.length.times do |index|
+  fxn = reduce_sat(assump, fxn)
+  puts fxn
 
-      term = fxn[index].split('+')
-      not_key = '~'.concat(key)
 
-      # puts("Term number #{index}: #{term}")
-      if (term.include?(not_key))
-        if (value == 1)
-          term.delete(not_key)
-        else
-          term = 1
-        end
-      elsif (term.include?(key))
-        if (value == 0)
-          term.delete(key)
-        else
-          term = 1 
-        end
-      end
-
-      if (term.kind_of?(Array))
-        term = term.join('+')
-      end
-
-      fxn[index] = term
-
-    end # times do
-  end # each do 
-
-  fxn.delete(1)
-
-  puts
-  puts(assump)
-  puts
-  puts(fxn)
-  puts(fxn.length)
+  
