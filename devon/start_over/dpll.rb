@@ -1,20 +1,24 @@
 # RECURSIVE DPLL ALGORITHM 
   def dpll(fxn)
     # Check if fxn is consistent (all 1's)
+    # or if there are any empty clauses
     if (fxn.all?('1'))
       return "SAT"
-    end # if
-
-    # Check if there is an empty clause
-    if (fxn.include?('0'))
+    elsif (fxn.include?('0'))
       return "unSAT"
-    end
+    end # if elseif
 
     # Unit propagation & simplification
     fxn = simplify(fxn, unit_prop(fxn))
 
     # Pure literal assignment & simplification
     fxn = simplify(fxn, pure_lit(fxn))
+
+    if (fxn.all?('1'))
+      return "SAT"
+    elsif (fxn.include?('0'))
+      return "unSAT"
+    end # if elsif
 
     # Pick a literal and create an assignment
     assignment = pick_lit(fxn)
@@ -135,5 +139,6 @@ end # def
         end # if 
       end # times do
     end # each do
+    fxn.delete('1')
     return fxn
   end # def
