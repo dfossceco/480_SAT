@@ -1,4 +1,4 @@
-# Recursive DPLL algorithm 
+# RECURSIVE DPLL ALGORITHM 
   def dpll(fxn)
     # Check if fxn is consistent (all 1's)
     if (fxn.all?('1'))
@@ -15,7 +15,22 @@
 
     # Pure literal assignment & simplification
     fxn = simplify(fxn, pure_lit(fxn))
-    dpll(fxn)
+
+    # Pick a literal and create an assignment
+    assignment = pick_lit(fxn)
+
+    if (dpll(simplify(fxn, assignment)).eql?('SAT'))
+      return "SAT"
+    else 
+      assignment = assignment.transform_values { |val|
+                                                 if (val.eql?('0'))
+                                                  val = '1'
+                                                 else
+                                                  val = '0'
+                                                 end # if else 
+                                                }
+      return dpll(simplify(fxn, assignment))
+    end # if else
   end # def
 
 # UNIT PROPAGATION
@@ -48,6 +63,26 @@ def pure_lit(fxn)
   end # each do
   pure_literals.delete('0')
   return assign(pure_literals)
+end # def
+
+# PICK LITERAL
+# Find the term with the fewest literals and return a hash
+# containing  an assignment for the first literal in that term
+def pick_lit(fxn)
+  t_fxn = []
+  fxn.length.times do |index|
+    t_fxn[index] = fxn[index].split('+').join('').split('~').join('')
+  end # times do
+  smallest_term_index = 0
+  t_fxn.length.times do |index|
+    if (t_fxn[index].length < t_fxn[smallest_term_index].length)
+      smallest_term_index = index
+    end # if
+  end # times do 
+  pick = []
+  smallest_term = fxn[smallest_term_index].split('+')
+  pick.append(smallest_term[0])
+  return assign(pick)
 end # def
 
 # ASSIGNMENTS
