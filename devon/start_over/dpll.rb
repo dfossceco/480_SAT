@@ -31,15 +31,7 @@
         unit_clauses.append(term) 
       end
     end # each do
-    assignments = {}
-    unit_clauses.each do |unit_clause|
-      if (unit_clause.length == 2)
-        assignments[unit_clause.delete('~')] = '0'
-      else 
-        assignments[unit_clause] = '1'
-      end # if else
-    end # each do
-    return assignments
+    return assign(unit_clauses)
   end # def 
 
 # PURE LITERAL ASSIGNMENT
@@ -55,16 +47,23 @@ def pure_lit(fxn)
     end # if 
   end # each do
   pure_literals.delete('0')
-  assignments = {}
-    pure_literals.each do |pure_literal|
-      if (pure_literal.length == 2)
-        assignments[pure_literal.delete('~')] = '0'
+  return assign(pure_literals)
+end # def
+
+# ASSIGNMENTS
+# Given an array of literals, create a hash that contains
+# the assignments that make those literals true
+  def assign(literals)
+    assignments = {}
+    literals.each do |literal|
+      if (literal.length == 2)
+        assignments[literal.delete('~')] = '0'
       else 
-        assignments[pure_literal] = '1'
+        assignments[literal] = '1'
       end # if else
     end # each do
     return assignments
-end # def
+  end # def
 
 # SIMPLIFY
 # Given the function and hash of assignments,
