@@ -1,4 +1,4 @@
-# Look for terms in the function that only contain one literal
+# Look for terms in the function that only contains one literal
 # If such a term is found, make a new assumption that will make
 # that term true.
 # TODO: Need to think about what happens if such a term does not exist
@@ -13,4 +13,5 @@
     end # each do 
     
     return assump
+    
   end # def
