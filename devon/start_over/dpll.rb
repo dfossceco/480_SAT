@@ -1,8 +1,8 @@
 # RECURSIVE DPLL ALGORITHM 
   def dpll(fxn)
-    # Check if fxn is consistent (all 1's)
+    # Check if fxn is empty (all terms reduced)
     # or if there are any empty clauses
-    if (fxn.all?('1'))
+    if (fxn.empty?)
       return "SAT"
     elsif (fxn.include?('0'))
       return "unSAT"
@@ -14,7 +14,7 @@
     # Pure literal assignment & simplification
     fxn = simplify(fxn, pure_lit(fxn))
 
-    if (fxn.all?('1'))
+    if (fxn.empty?)
       return "SAT"
     elsif (fxn.include?('0'))
       return "unSAT"
