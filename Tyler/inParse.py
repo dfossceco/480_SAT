@@ -2,25 +2,56 @@ import sys
 import re
 
 
+# Invert all inputs in a list
+def invert(inList):
+    invertList = [None] * len(inList)
+    for a in range(0, len(inList)):
+        if inList[a][0] == "~":
+            invertList[a] = inList[a][1:]
+        else:
+            invertList[a] = "~" + inList[a]
+    return invertList
+
+
 def orGateConsistency(inList):
     # Output is z
-    outputStr1 = ""
-    outputStr2 = "("
+    P1Str = ""
+    P2Str = "("
+
+    # Invert input for product section of equation
+    invertList = invert(inList)
+
+    # Create strings for product and sum section of equation
     for a in range(0, len(inList)):
-        # Invert input for product section of equation
-        if inList[a][0] == "~":
-            inList[a] = inList[a][1:]
-        else:
-            inList[a] = "~" + inList[a]
-
         if a == len(inList) - 1:       # Last one
-            outputStr1 += "(" + inList[a] + " + z)"
-            outputStr2 += inList[a] + " + ~z)"
+            P1Str += "(" + invertList[a] + " + z)"
+            P2Str += inList[a] + " + ~z)"
         else:
-            outputStr1 += "(" + inList[a] + " + z) * "
-            outputStr2 += inList[a] + " + "
+            P1Str += "(" + invertList[a] + " + z) * "
+            P2Str += inList[a] + " + "
 
-        output = outputStr1 + " * " + outputStr2
+    output = P1Str + " * " + P2Str
+    return output
+
+
+def andGateConsistency(inList):
+    # Output is z
+    P1Str = ""
+    P2Str = "("
+
+    # Invert input for product section of equation
+    invertList = invert(inList)
+
+    # Create strings for proudct and sum section of equation
+    for a in range(0, len(inList)):
+        if a == len(inList) - 1:       # Last one
+            P1Str += "(" + inList[a] + " + ~z)"
+            P2Str += invertList[a] + " + z)"
+        else:
+            P1Str += "(" + inList[a] + " + ~z) * "
+            P2Str += invertList[a] + " + "
+
+    output = P1Str + " * " + P2Str
     return output
 
 
@@ -87,13 +118,15 @@ if __name__ == '__main__':
     v = extractVariables(e)
     c = countVariables(v)
 
-    li = ['~a', 'b', 'c']
+    li = ['w', 'x', 'y']
     x = orGateConsistency(li)
-    print(x)
+    y = andGateConsistency(li)
+    print(y)
 
 
     # To-Do
     # Need to parse the expression and format so we can use the gate functions to create a POS
+    # Need to check for "~() case"
     # Implement gate consistency functions
     # Pass parse functions to get POS output
     # Ensure output is readable for Devon's script
