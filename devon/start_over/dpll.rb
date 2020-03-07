@@ -2,16 +2,19 @@
   def dpll(fxn)
     # Check if fxn is consistent (all 1's)
     if (fxn.all?('1'))
-      return true
+      return "SAT"
     end # if
 
     # Check if there is an empty clause
     if (fxn.include?('0'))
-      return false
+      return "unSAT"
     end
 
     # Unit propagation & simplification
     fxn = simplify(fxn, unit_prop(fxn))
+
+    # Pure literal assignment & simplification
+    fxn = simplify(fxn, pure_lit(fxn))
     dpll(fxn)
   end # def
 
@@ -38,6 +41,30 @@
     end # each do
     return assignments
   end # def 
+
+# PURE LITERAL ASSIGNMENT
+# Identify any pure literals in the function and return
+# a hash of assignments that make those pure literals true
+def pure_lit(fxn)
+  pure_literals = fxn.join('+').split('+').uniq.sort
+  pure_literals.length.times do |index|
+    not_literal = '~'.concat(pure_literals[index])
+    if ( pure_literals[index].length == 1 && pure_literals.include?(not_literal))
+      pure_literals[index] = '0'
+      pure_literals[pure_literals.index(not_literal)] = '0'
+    end # if 
+  end # each do
+  pure_literals.delete('0')
+  assignments = {}
+    pure_literals.each do |pure_literal|
+      if (pure_literal.length == 2)
+        assignments[pure_literal.delete('~')] = '0'
+      else 
+        assignments[pure_literal] = '1'
+      end # if else
+    end # each do
+    return assignments
+end # def
 
 # SIMPLIFY
 # Given the function and hash of assignments,
