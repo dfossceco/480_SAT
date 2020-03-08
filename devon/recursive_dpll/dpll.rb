@@ -134,18 +134,18 @@ end # def
   def simplify (fxn, assignments)
     t_fxn = Array.new(fxn)
     assignments.each do |unit, value|
-      fxn.length.times do |index|
-        if (fxn[index].include?(unit))
-          if (fxn[index].length == 1)
+      t_fxn.length.times do |index|
+        if (t_fxn[index].include?(unit))
+          if (t_fxn[index].length == 1)
             t_fxn[index] = value
-          elsif (fxn[index].length == 2)
+          elsif (t_fxn[index].length == 2)
             if (value.eql?('0'))
               t_fxn[index] = '1'
             else
               t_fxn[index] = '0'
             end # if else
           else
-            term = fxn[index].split('+')
+            term = t_fxn[index].split('+')
             if ( (term.include?(unit) && value.eql?('1')) ||
                  (term.include?('~'.concat(unit)) && value.eql?('0'))
                 )
