@@ -8,11 +8,18 @@
       return "unSAT"
     end # if elseif
 
-    # Unit propagation & simplification
-    fxn = simplify(fxn, unit_prop(fxn))
+    # While there exists some unit clause or pure literal,
+    # simplify the fxn based on those assignments
+    while (!fxn.eql?(simplify(fxn, unit_prop(fxn))) || 
+           !fxn.eql?(simplify(fxn, pure_lit(fxn))))
+      # Unit propagation & simplification
+      fxn = simplify(fxn, unit_prop(fxn))
 
-    # Pure literal assignment & simplification
-    fxn = simplify(fxn, pure_lit(fxn))
+      # Pure literal assignment & simplification
+      fxn = simplify(fxn, pure_lit(fxn))
+
+    end # while
+
 
     if (fxn.empty?)
       return "SAT"
