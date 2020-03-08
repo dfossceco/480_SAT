@@ -1,3 +1,6 @@
+# Global $verbose signal for debugging
+$verbose = true
+
 # RECURSIVE DPLL ALGORITHM 
   def dpll(fxn)
     # Check if fxn is empty (all terms reduced)
@@ -5,32 +8,42 @@
     if (fxn.empty?)
       return "SAT"
     elsif (fxn.include?('0'))
-      return "unSAT"
-    end # if elseif
+      return 'unSAT'
+    end # if elsif
+
+    # Make a local copy of the function for this activation record 
+    t_fxn = Array.new(fxn)
 
     # While there exists some unit clause or pure literal,
     # simplify the fxn based on those assignments
-    while (!fxn.eql?(simplify(fxn, unit_prop(fxn))) || 
-           !fxn.eql?(simplify(fxn, pure_lit(fxn))))
+    while ( !unit_prop(t_fxn).empty? || 
+            !pure_lit(t_fxn).empty? )
       # Unit propagation & simplification
-      fxn = simplify(fxn, unit_prop(fxn))
+      if ($verbose)
+        puts ("UNIT CLAUSE: #{unit_prop(t_fxn)}" )
+      end # if 
+      t_fxn = simplify(t_fxn, unit_prop(t_fxn))
 
       # Pure literal assignment & simplification
-      fxn = simplify(fxn, pure_lit(fxn))
-
+      if ($verbose)
+        puts ("PURE LITERAL: #{pure_lit(t_fxn)}")
+      end
+      t_fxn = simplify(t_fxn, pure_lit(t_fxn))
     end # while
 
-
-    if (fxn.empty?)
+    if (t_fxn.empty?)
       return "SAT"
-    elsif (fxn.include?('0'))
-      return "unSAT"
+    elsif (t_fxn.include?('0'))
+      return 'unSAT'
     end # if elsif
 
     # Pick a literal and create an assignment
-    assignment = pick_lit(fxn)
+    assignment = pick_lit(t_fxn)
+    if ($verbose)
+      puts ("ASSUMPTION: #{assignment}")
+    end
 
-    if (dpll(simplify(fxn, assignment)).eql?('SAT'))
+    if (dpll(simplify(t_fxn, assignment)).eql?('SAT'))
       return "SAT"
     else 
       assignment = assignment.transform_values { |val|
@@ -40,6 +53,9 @@
                                                   val = '0'
                                                  end # if else 
                                                 }
+      if ($verbose)
+        puts ("ASSUMPTION: #{assignment}")
+      end
       return dpll(simplify(fxn, assignment))
     end # if else
   end # def
@@ -116,36 +132,42 @@ end # def
 # simplify the function and return that simplified
 # function
   def simplify (fxn, assignments)
+    t_fxn = Array.new(fxn)
     assignments.each do |unit, value|
       fxn.length.times do |index|
         if (fxn[index].include?(unit))
           if (fxn[index].length == 1)
-            fxn[index] = value
+            t_fxn[index] = value
           elsif (fxn[index].length == 2)
             if (value.eql?('0'))
-              fxn[index] = '1'
+              t_fxn[index] = '1'
             else
-              fxn[index] = '0'
+              t_fxn[index] = '0'
             end # if else
           else
             term = fxn[index].split('+')
             if ( (term.include?(unit) && value.eql?('1')) ||
                  (term.include?('~'.concat(unit)) && value.eql?('0'))
                 )
-              fxn[index] = '1'
+              t_fxn[index] = '1'
             elsif (term.include?(unit) && value.eql?('0'))
               term.delete_at(term.index(unit))
-              fxn[index] = term.join('+')
+              t_fxn[index] = term.join('+')
             elsif (term.include?('~'.concat(unit)) && value.eql?('1'))
               term.delete_at(term.index('~'.concat(unit)))
-              fxn[index] = term.join('+')
+              t_fxn[index] = term.join('+')
             else
               abort ('Something has gone horribly wrong!')
             end # if elsif
           end # if else
-        end # if 
+        end # if  
       end # times do
     end # each do
-    fxn.delete('1')
-    return fxn
+    t_fxn.delete('1')
+    if ($verbose)
+      puts("INPUT: #{fxn}")
+      puts("OUTPUT: #{t_fxn}")
+      puts
+    end 
+    return t_fxn
   end # def
