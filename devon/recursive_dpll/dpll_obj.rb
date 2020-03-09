@@ -34,6 +34,14 @@ class DPLL
       end # if
       t_fxn = simplify(t_fxn, unit_prop(t_fxn))
 
+      # Give priority to unit clauses
+      # Reduce ALL unit clauses before moving on to 
+      # pure literals. This will help with ensuring the returned
+      # assignments are a minimal set of variables 
+      if (!unit_prop(t_fxn).empty?)
+        next
+      end #if
+      
       # Pure literal assignment & simplification
       @all_assignments.merge!(pure_lit(t_fxn))
       if (@verbose)

@@ -4,6 +4,9 @@ h.a+d.b+d.~a+~b+~d.~b+~e.~c+~e.b+c+e.~d+~f.d+f.~d+g.~e+g.d+e+~g.f+~h.g+~h.~f+~g+
 This should be SAT: 
 h.a+d.b+d.~a+~b+~d.b+~e.~c+~e.b+c+e.~d+~f.d+f.~d+g.~e+g.d+e+~g.f+~h.g+~h.~f+~g+h
 
+This should be SAT:
+h.a+~d.b+~d.~a+~b+d.~b+~e.~c+~e.b+c+e.~d+~f.d+f.~d+g.~e+g.d+e+~g.f+~h.g+~h.~f+~g+h
+
 This should be unSAT (This one is whack):
 ~n+~t.m+q+n.l+~m.l+~q.~l+~p.r+p+n.~r+~l.t
 ~n|~t&m|q|n&l|~m&l|~q&~l|~p&r|p|n&~r|~l&t
@@ -15,3 +18,10 @@ p+q+r.p+q+~r.p+~q+r.p+~q+~r.~p+q+r.~p+q+~r.~p+~q+r
 
 This should be SAT:
 x+y.~x+y.~y+z.~x+~y+~z
+
+This should be SAT:
+for some fxn f(xyz) = sum(m0,m1,m4,m5,m7)
+f = ~x.~y.~z+~x.~y.z+x.~y.~z+x.~y.z+x.y.z
+  = ~y + x.z
+f = prod(M2, M3, M6)
+  = x+~y+z.x+~y+~z.~x+~y+z
