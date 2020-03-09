@@ -18,6 +18,7 @@ p+q+r.p+q+~r.p+~q+r.p+~q+~r.~p+q+r.~p+q+~r.~p+~q+r
 
 This should be SAT:
 x+y.~x+y.~y+z.~x+~y+~z
+only has one minterm at 3
 
 This should be SAT:
 for some fxn f(xyz) = sum(m0,m1,m4,m5,m7)
@@ -25,3 +26,9 @@ f = ~x.~y.~z+~x.~y.z+x.~y.~z+x.~y.z+x.y.z
   = ~y + x.z
 f = prod(M2, M3, M6)
   = x+~y+z.x+~y+~z.~x+~y+z
+
+This should be SAT:
+for some fxn f(xyz) = prod(M0, M1, M2, M6, M7)
+f = x+y+z.x+y+~z.x+~y+z.~x+~y+z.~x+~y+~z
+f = sum(m3, m4, m4)
+f = x.~y+~x.y.z

@@ -1,6 +1,7 @@
-# TODO: Print out all assumptions made
-# TODO: Write method to remove non block inputs
-# from assumptions
+# TODO: Need to ensure that this script will work
+# with variables that are longer than a single character
+# guaranteed won't work rn
+
 class DPLL
 # Instance verbose and assignments variables
   def initialize (verbose, all_assignments)
