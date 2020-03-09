@@ -27,22 +27,20 @@ class DPLL
             !pure_lit(t_fxn).empty? )
 
       # Unit propagation & simplification
+      @all_assignments.merge!(unit_prop(t_fxn))
       if (@verbose)
-        puts ("UNIT CLAUSE: #{unit_prop(t_fxn)}" )
+        puts ("UNIT CLAUSE: #{unit_prop(t_fxn)}")
+        puts ("ALL ASSIGNMENTS: #{@all_assignments}")
       end # if
       t_fxn = simplify(t_fxn, unit_prop(t_fxn))
-      if (!unit_prop(t_fxn).empty?) 
-        @all_assignments.merge(unit_prop(t_fxn))
-      end # if
 
       # Pure literal assignment & simplification
+      @all_assignments.merge!(pure_lit(t_fxn))
       if (@verbose)
         puts ("PURE LITERAL: #{pure_lit(t_fxn)}")
+        puts ("ALL ASSIGNMENTS: #{@all_assignments}")
       end # if 
       t_fxn = simplify(t_fxn, pure_lit(t_fxn))
-      if (!pure_lit(t_fxn).empty?)
-        @all_assignments.merge(pure_lit(t_fxn))
-      end # if 
     end # while
 
     if (t_fxn.empty?)
@@ -51,11 +49,12 @@ class DPLL
       return 'unSAT'
     end # if elsif
 
-    # Pick a literal and create an assignment
+    # Pick a literal and create an assignment based on the pick
     assignment = pick_lit(t_fxn)
-    # @all_assignments.merge(pure_lit(@assignment))
+    @all_assignments.merge!(assignment)
     if (@verbose)
       puts ("ASSUMPTION: #{assignment}")
+      puts ("ALL ASSIGNMENTS: #{@all_assignments}")
     end
 
     if (dpll_rec(simplify(t_fxn, assignment)).eql?('SAT'))
@@ -68,8 +67,10 @@ class DPLL
                                                   val = '0'
                                                  end # if else 
                                                 }
+      @all_assignments.merge!(assignment)
       if (@verbose)
         puts ("ASSUMPTION: #{assignment}")
+        puts ("ALL ASSIGNMENTS: #{@all_assignments}")
       end
       return dpll_rec(simplify(fxn, assignment))
     end # if else
@@ -188,7 +189,7 @@ end # def
   end # def
 
 # Assignments attribute reader
-  def all_assignments()
+  def get_assignments()
     return @all_assignments
   end # def
 
