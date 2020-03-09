@@ -1,7 +1,5 @@
-# TODO: Need to ensure that this script will work
-# with variables that are longer than a single character
-# guaranteed won't work rn
-
+# TODO: Maybe have it so it only runs unit clause / pure lit
+# if that term exists
 class DPLL
 # Instance verbose and assignments variables
   def initialize (verbose, all_assignments)
@@ -14,7 +12,7 @@ class DPLL
     # Check if fxn is empty (all terms reduced)
     # or if there are any empty clauses
     if (fxn.empty?)
-      return "SAT"
+      return 'SAT'
     elsif (fxn.include?('0'))
       return 'unSAT'
     end # if elsif
@@ -35,6 +33,10 @@ class DPLL
       end # if
       t_fxn = simplify(t_fxn, unit_prop(t_fxn))
 
+      if (t_fxn.include?('0'))
+        return 'unSAT'
+      end # if
+
       # Give priority to unit clauses
       # Reduce ALL unit clauses before moving on to 
       # pure literals. This will help with ensuring the returned
@@ -50,13 +52,16 @@ class DPLL
         puts ("ALL ASSIGNMENTS: #{@all_assignments}")
       end # if 
       t_fxn = simplify(t_fxn, pure_lit(t_fxn))
+
+      if (t_fxn.include?('0'))
+        return 'unSAT'
+      end # if
+
     end # while
 
     if (t_fxn.empty?)
-      return "SAT"
-    elsif (t_fxn.include?('0'))
-      return 'unSAT'
-    end # if elsif
+      return 'SAT'
+    end # if
 
     # Pick a literal and create an assignment based on the pick
     assignment = pick_lit(t_fxn)
@@ -67,7 +72,7 @@ class DPLL
     end
 
     if (dpll_rec(simplify(t_fxn, assignment)).eql?('SAT'))
-      return "SAT"
+      return 'SAT'
     else 
       assignment = assignment.transform_values { |val|
                                                  if (val.eql?('0'))
@@ -92,9 +97,7 @@ class DPLL
   def unit_prop (fxn)
     unit_clauses = []
     fxn.each do |term|
-      if ( (term.length == 1 && !term.eql?('1') && !term.eql?('0')) || 
-            term.length == 2
-          )
+      if ( !term.include?('+') )
         unit_clauses.append(term) 
       end
     end # each do
@@ -104,38 +107,38 @@ class DPLL
 # PURE LITERAL ASSIGNMENT
 # Identify any pure literals in the function and return
 # a hash of assignments that make those pure literals true
-def pure_lit(fxn)
-  pure_literals = fxn.join('+').split('+').uniq.sort
-  pure_literals.length.times do |index|
-    not_literal = '~'.concat(pure_literals[index])
-    if ( pure_literals[index].length == 1 && pure_literals.include?(not_literal))
-      pure_literals[index] = '0'
-      pure_literals[pure_literals.index(not_literal)] = '0'
-    end # if 
-  end # each do
-  pure_literals.delete('0')
-  return assign(pure_literals)
-end # def
+  def pure_lit(fxn)
+    pure_literals = fxn.join('+').split('+').uniq.sort
+    pure_literals.length.times do |index|
+      not_literal = '~'.concat(pure_literals[index])
+      if (!pure_literals[index].include?('~') && pure_literals.include?(not_literal))
+        pure_literals[index] = '0'
+        pure_literals[pure_literals.index(not_literal)] = '0'
+      end # if 
+    end # each do
+    pure_literals.delete('0')
+    return assign(pure_literals)
+  end # def
 
 # PICK LITERAL
 # Find the term with the fewest literals and return a hash
 # containing  an assignment for the first literal in that term
-def pick_lit(fxn)
-  t_fxn = []
-  fxn.length.times do |index|
-    t_fxn[index] = fxn[index].split('+').join('').split('~').join('')
-  end # times do
-  smallest_term_index = 0
-  t_fxn.length.times do |index|
-    if (t_fxn[index].length < t_fxn[smallest_term_index].length)
-      smallest_term_index = index
-    end # if
-  end # times do 
-  pick = []
-  smallest_term = fxn[smallest_term_index].split('+')
-  pick.append(smallest_term[0])
-  return assign(pick)
-end # def
+  def pick_lit(fxn)
+    t_fxn = []
+    fxn.length.times do |index|
+      t_fxn[index] = fxn[index].split('+')
+    end # times do
+    smallest_term_index = 0
+    t_fxn.length.times do |index|
+      if (t_fxn[index].length < t_fxn[smallest_term_index].length)
+        smallest_term_index = index
+      end # if
+    end # times do 
+    pick = []
+    smallest_term = fxn[smallest_term_index].split('+')
+    pick.append(smallest_term[0])
+    return assign(pick)
+  end # def
 
 # ASSIGNMENTS
 # Given an array of literals, create a hash that contains
@@ -143,7 +146,7 @@ end # def
   def assign(literals)
     assignments = {}
     literals.each do |literal|
-      if (literal.length == 2)
+      if (literal.include?('~'))
         assignments[literal.delete('~')] = '0'
       else 
         assignments[literal] = '1'
@@ -158,28 +161,30 @@ end # def
 # function
   def simplify (fxn, assignments)
     t_fxn = Array.new(fxn)
-    assignments.each do |unit, value|
+    assignments.each do |literal, value|
       t_fxn.length.times do |index|
-        if (t_fxn[index].include?(unit))
-          if (t_fxn[index].length == 1)
-            t_fxn[index] = value
-          elsif (t_fxn[index].length == 2)
-            if (value.eql?('0'))
-              t_fxn[index] = '1'
+        if (t_fxn[index].include?(literal))
+          # Check to see first if the term is a unit clause
+          if (!t_fxn[index].include?('+'))
+            if (t_fxn[index].include?('~'))
+              if (value.eql?('0'))
+                t_fxn[index] = '1'
+              else
+                t_fxn[index] = '0'
+              end # if else
             else
-              t_fxn[index] = '0'
+              t_fxn[index] = value
             end # if else
-          else
+          else # Not a unit clause, so we have some more work to do
             term = t_fxn[index].split('+')
-            if ( (term.include?(unit) && value.eql?('1')) ||
-                 (term.include?('~'.concat(unit)) && value.eql?('0'))
-                )
+            if ((term.include?(literal) && value.eql?('1')) ||
+                (term.include?('~'.concat(literal)) && value.eql?('0')))
               t_fxn[index] = '1'
-            elsif (term.include?(unit) && value.eql?('0'))
-              term.delete_at(term.index(unit))
+            elsif (term.include?(literal) && value.eql?('0'))
+              term.delete_at(term.index(literal))
               t_fxn[index] = term.join('+')
-            elsif (term.include?('~'.concat(unit)) && value.eql?('1'))
-              term.delete_at(term.index('~'.concat(unit)))
+            elsif (term.include?('~'.concat(literal)) && value.eql?('1'))
+              term.delete_at(term.index('~'.concat(literal)))
               t_fxn[index] = term.join('+')
             else
               abort ('Something has gone horribly wrong!')
