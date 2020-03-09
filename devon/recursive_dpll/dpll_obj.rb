@@ -25,17 +25,24 @@ class DPLL
     # simplify the fxn based on those assignments
     while ( !unit_prop(t_fxn).empty? || 
             !pure_lit(t_fxn).empty? )
+
       # Unit propagation & simplification
       if (@verbose)
         puts ("UNIT CLAUSE: #{unit_prop(t_fxn)}" )
-      end # if 
+      end # if
       t_fxn = simplify(t_fxn, unit_prop(t_fxn))
+      if (!unit_prop(t_fxn).empty?) 
+        @all_assignments.merge(unit_prop(t_fxn))
+      end # if
 
       # Pure literal assignment & simplification
       if (@verbose)
         puts ("PURE LITERAL: #{pure_lit(t_fxn)}")
-      end
+      end # if 
       t_fxn = simplify(t_fxn, pure_lit(t_fxn))
+      if (!pure_lit(t_fxn).empty?)
+        @all_assignments.merge(pure_lit(t_fxn))
+      end # if 
     end # while
 
     if (t_fxn.empty?)
@@ -46,6 +53,7 @@ class DPLL
 
     # Pick a literal and create an assignment
     assignment = pick_lit(t_fxn)
+    # @all_assignments.merge(pure_lit(@assignment))
     if (@verbose)
       puts ("ASSUMPTION: #{assignment}")
     end
@@ -177,6 +185,11 @@ end # def
       puts
     end 
     return t_fxn
+  end # def
+
+# Assignments attribute reader
+  def all_assignments()
+    return @all_assignments
   end # def
 
 end # class
