@@ -1,6 +1,8 @@
 # Global $verbose signal for debugging
-$verbose = true
-
+$verbose = false
+# TODO: Print out all assumptions made
+# TODO: Write method to remove non block inputs
+# from assumptions
 # RECURSIVE DPLL ALGORITHM 
   def dpll(fxn)
     # Check if fxn is empty (all terms reduced)
