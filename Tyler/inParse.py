@@ -1,6 +1,9 @@
 import sys
 import re
 
+# Global used for building the names of gate consistency outputs
+outCount = 0
+
 
 # Invert all inputs in a list
 def invert(inList):
@@ -13,8 +16,28 @@ def invert(inList):
     return invertList
 
 
+def checkBalance(exp):
+    open_list = ["("]
+    close_list = [")"]
+
+    stack = []
+    for i in exp:
+        if i in open_list:
+            stack.append(i)
+        elif i in close_list:
+            pos = close_list.index(i)
+            if (len(stack) > 0) and (open_list[pos] == stack[len(stack) - 1]):
+                stack.pop()
+            else:
+                return "Unbalanced"
+    if len(stack) > 0:
+        return "Unbalanced"
+
+
 def orGateConsistency(inList):
-    # Output is z
+    # Output is global outCount
+    global outCount
+
     P1Str = ""
     P2Str = "("
 
@@ -24,18 +47,21 @@ def orGateConsistency(inList):
     # Create strings for product and sum section of equation
     for a in range(0, len(inList)):
         if a == len(inList) - 1:  # Last one
-            P1Str += "(" + invertList[a] + " + z)"
-            P2Str += inList[a] + " + ~z)"
+            P1Str += "(" + invertList[a] + " + ^" + str(outCount) + ")"
+            P2Str += inList[a] + " + ~^" + str(outCount) + ")"
         else:
-            P1Str += "(" + invertList[a] + " + z) * "
+            P1Str += "(" + invertList[a] + " + ^" + str(outCount) + ") * "
             P2Str += inList[a] + " + "
 
+    outCount += 1
     output = P1Str + " * " + P2Str
     return output
 
 
 def andGateConsistency(inList):
-    # Output is z
+    # Output is global outCount
+    global outCount
+
     P1Str = ""
     P2Str = "("
 
@@ -45,12 +71,13 @@ def andGateConsistency(inList):
     # Create strings for proudct and sum section of equation
     for a in range(0, len(inList)):
         if a == len(inList) - 1:  # Last one
-            P1Str += "(" + inList[a] + " + ~z)"
-            P2Str += invertList[a] + " + z)"
+            P1Str += "(" + inList[a] + " + ~^" + str(outCount) + ")"
+            P2Str += invertList[a] + " + ^" + str(outCount) + ")"
         else:
-            P1Str += "(" + inList[a] + " + ~z) * "
+            P1Str += "(" + inList[a] + " + ~^" + str(outCount) + ") * "
             P2Str += invertList[a] + " + "
 
+    outCount += 1
     output = P1Str + " * " + P2Str
     return output
 
@@ -60,8 +87,8 @@ def distributiveCheck(uIn):
     iList = []
     if "~(" in uIn:
         # find all occurrences of "~("
-        for a in range(0, len(uIn)-1):
-            if uIn[a] + uIn[a+1] == "~(":
+        for a in range(0, len(uIn) - 1):
+            if uIn[a] + uIn[a + 1] == "~(":
                 iList.append(a)
 
         # extract sections which require distribution
@@ -73,7 +100,6 @@ def distributiveCheck(uIn):
                 if uIn[index] == ")":
                     break
                 index += 1
-        # print(sub)
 
         # distribution for variables
         newSub = sub[:]
@@ -88,13 +114,12 @@ def distributiveCheck(uIn):
         for a in range(0, len(newSub)):
             for b in range(0, len(newSub[a])):
                 if newSub[a][b] == "+":
-                    newSub[a] = newSub[a][:b] + "*" + newSub[a][b+1:]
+                    newSub[a] = newSub[a][:b] + "*" + newSub[a][b + 1:]
         # print(newSub)
 
         # Need to replace in original expression
         for a in range(0, len(sub)):
             uIn = uIn.replace(sub[a], newSub[a])
-
     return uIn
 
 
@@ -103,7 +128,7 @@ def extractExpression(equation):
     sides = re.split("[=]", equation)
     if "." or "+" or "~" in sides[0]:
         return sides[0].strip()
-    elif  "." or "+" or "~" in sides[1]:
+    elif "." or "+" or "~" in sides[1]:
         return sides[1].strip()
     else:
         print("Neither side of equation contains an operator. Exiting!")
@@ -112,7 +137,7 @@ def extractExpression(equation):
 
 # Extracts all variables from an expression
 def extractVariables(expression):
-    varSet = sorted(set(re.findall(r'[~0-9a-z]+', expression)))
+    varSet = sorted(set(re.findall(r'[~0-9a-z!]+', expression)))
     return varSet
 
 
@@ -135,16 +160,26 @@ def countOperators(uIn):
 
 # Checks user input function for potential issues
 def checkFunction(inStr):
+    # Ensure there is only a single = in the equation
     eqCount = 0
     for a in range(0, len(inStr)):
         if inStr[a] == "=":
             eqCount += 1
-
     if eqCount == 0:
         print("Input must be a function. Please add an equals sign and an output variable")
         sys.exit()
     elif eqCount > 1:
         print("Invalid function. Only one \'=\' allowed")
+        sys.exit()
+
+    # Check that ^ is not in the input as it is used for output indicator later
+    if "^" in inStr:
+        print("Input cannot contain \'^\'")
+        sys.exit()
+
+    # Check that the function has balanced parenthesis
+    if checkBalance(extractExpression(uIn)) == "Unbalanced":
+        print("Unbalanced parentheses in function. Fix and try again")
         sys.exit()
 
 
@@ -174,7 +209,7 @@ if __name__ == '__main__':
 
     # To-Do
     # Need to parse the expression and format so we can use the gate functions to create a POS
-    # Need to check for ~~ case
-    # Implement gate consistency functions
     # Pass parse functions to get POS output
+    # Can do this by replacing gate in equation with its defined output variable, ie: (a+b)*c = ^0*c then eval
+    # Need to deal with nested distribution case
     # Ensure output is readable for Devon's script
