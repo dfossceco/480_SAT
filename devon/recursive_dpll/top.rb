@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require "./dpll.rb"
+require "./dpll_obj.rb"
 
 # Select between the different modes of the SAT tool
 # Partial assignment : Get user input and determine SAT for those values 
@@ -41,6 +41,7 @@ require "./dpll.rb"
     fxn_file.close
     # system("rm fxn.txt")
 
+    dpll = DPLL.new(true, {})
     # If in partial mode, get the users partial assignment(s)
     # Simplifiy the function according to their assignments,
     # send that reduced function to the DPLL algorithm
@@ -53,8 +54,8 @@ require "./dpll.rb"
         user_assign[index] = user_assign[index].split('=')
         partial_assign[user_assign[index][0]] = user_assign[index][1]
       end # times do
-      fxn = simplify(fxn, partial_assign)
+      fxn = dpll.simplify(fxn, partial_assign)
     end #if
-    puts(dpll(fxn))
+    puts(dpll.dpll_rec(fxn))
   end # if
 
