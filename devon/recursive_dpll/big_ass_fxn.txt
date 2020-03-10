@@ -33,3 +33,7 @@ for some fxn f(xyz) = prod(M0, M1, M2, M6, M7)
 f = x+y+z.x+y+~z.x+~y+z.~x+~y+z.~x+~y+~z
 f = sum(m3, m4, m4)
 f = x.~y+~x.y.z
+
+Test for Tylers
+f1 = (~x.~y.~z)+(~x.~y.z)+(~x.y.~z)
+f2 = (~x.~y.~z)+(~x.~y.z)+(x.y.~z)+(x.y.z)

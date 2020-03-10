@@ -17,9 +17,13 @@ require "./dpll_obj.rb"
   i = 0
   fxn_file.each do |line|
     if (i == 0)
-      fxn = line.chomp.split('.')
+      fxn = line.chomp
+      puts("The CNF form of the function is: #{fxn}\n\n")
+      fxn = fxn.split('.')
     else
-      inputs = line.chomp.split(',')
+      inputs = line.chomp
+      puts("The inputs to the fucntion are: #{inputs}\n\n")
+      inputs = inputs.split(',')
     end # if else
     i += 1
   end # each do
@@ -34,6 +38,7 @@ require "./dpll_obj.rb"
 # Second line will contain the list of inputs
 # TODO: Who is going to print the CNF form?
   def complete()
+    # puts("Please input a function:")
     # user_in = gets().chomp
     # system ("./inParse.py #{user_in}")
     return get_fxn()
@@ -74,8 +79,9 @@ require "./dpll_obj.rb"
     term_a = '('.concat(fxn1).concat('.').concat(not_fxn2).concat(')')
     term_b = '('.concat(not_fxn1).concat('.').concat(fxn2).concat(')')
 
-    fxn = term_a.concat('+').concat(term_b)
-    # system ("./inParse.py #{fxn}")
+    xor = term_a.concat('+').concat(term_b)
+    puts("XOR of the two functions: #{xor}\n\n")
+    # system ("./inParse.py #{xor}")
     return get_fxn()
   end # def
 
@@ -99,7 +105,7 @@ require "./dpll_obj.rb"
 # possibly get partial assignment
 # Then use DPLL to solve the SAT of the fxn
   puts("\nWhat mode would you like to run the SAT solver in?")
-  puts("\tType 'complete' for a complete  SAT solution")
+  puts("\tType 'complete' for a complete SAT solution")
   puts("\tType 'partial' for a partial assignment SAT solution")
   puts("\tType 'multi' for a multi-function comparison\n")
 
@@ -108,7 +114,7 @@ require "./dpll_obj.rb"
 
   fxn = ''
   inputs = ''
-  dpll = DPLL.new(true, {})
+  dpll = DPLL.new(false, {})
 
   if (run_type.eql?('complete') || run_type.eql?('partial'))
     fxn, inputs = complete()
@@ -116,11 +122,10 @@ require "./dpll_obj.rb"
       fxn = partial(fxn, dpll)
     end # if
   elsif (run_type.eql?('multi'))
-    fxn = multi()
+    fxn, inputs = multi()
   else
     abort ('INPUT MODE WAS NOT RECOGNIZED!')
   end # if else
-
 
   status = dpll.dpll_rec(fxn)
   assignments = dpll.get_assignments()
