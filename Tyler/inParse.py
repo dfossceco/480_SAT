@@ -82,6 +82,14 @@ def andGateConsistency(inList):
     return output
 
 
+def countLeftParenthesis(str):
+    count = 0
+    for a in range(0, len(str)):
+        if str[a] == "(":
+            count += 1
+    return count
+
+
 # Check for potential use of the distributive property
 def distributiveCheck(uIn):
     iList = []
@@ -95,14 +103,29 @@ def distributiveCheck(uIn):
         sub = [""] * len(iList)
         for a in range(0, len(iList)):
             index = iList[a]
+            rCount = 0
             while True:
                 sub[a] += uIn[index]
                 if uIn[index] == ")":
-                    break
+                    rCount += 1
+                    if rCount == countLeftParenthesis(sub[a]):
+                        break
                 index += 1
 
+        # Need to test for nested distribution cases
+        new = sub[:]
+        if len(iList) > 1:
+            # Get indices of
+            indices = []
+            for a in range(len(sub) - 1, 0, -1):
+                if sub[a] in sub[a - 1]:
+                    indices.append(a)
+
+            for a in range(0, len(indices)):
+                new[indices[a] - 1] = new[indices[a] - 1].replace(sub[indices[a]], distributiveCheck(new[indices[a]]))
+
         # distribution for variables
-        newSub = sub[:]
+        newSub = new[:]
         for a in range(0, len(newSub)):
             newSub[a] = newSub[a][2:][:-1]
             ev = extractVariables(newSub[a])
@@ -115,7 +138,9 @@ def distributiveCheck(uIn):
             for b in range(0, len(newSub[a])):
                 if newSub[a][b] == "+":
                     newSub[a] = newSub[a][:b] + "*" + newSub[a][b + 1:]
-        # print(newSub)
+                    b += 1
+                if newSub[a][b] == "*":
+                    newSub[a] = newSub[a][:b] + "+" + newSub[a][b + 1:]
 
         # Need to replace in original expression
         for a in range(0, len(sub)):
@@ -188,18 +213,15 @@ if __name__ == '__main__':
     # Take user input
     print("Input a valid boolean function and include the output variable")
     # uIn = input()
-    uIn = "~(ab + cd) * ~(a+b) = z"
+    uIn = "~(ab + ~(cd+~(ef+gh))) * ~(a + b) = z"
     print("Input was: " + uIn)
 
     checkFunction(uIn)
     uIn = uIn.replace(" ", "")
 
-    ops = countOperators(uIn)
     e = extractExpression(uIn)
     out = distributiveCheck(e)
     print(out)
-    c = countVariables(extractVariables(out))
-    print(c)
 
     li = ['w', 'x', 'y']
     x = orGateConsistency(li)
@@ -211,5 +233,4 @@ if __name__ == '__main__':
     # Need to parse the expression and format so we can use the gate functions to create a POS
     # Pass parse functions to get POS output
     # Can do this by replacing gate in equation with its defined output variable, ie: (a+b)*c = ^0*c then eval
-    # Need to deal with nested distribution case
     # Ensure output is readable for Devon's script
