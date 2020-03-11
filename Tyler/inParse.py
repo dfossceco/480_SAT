@@ -17,16 +17,16 @@ def invert(inList):
 
 
 def checkBalance(exp):
-    open_list = ["("]
-    close_list = [")"]
+    openParen = ["("]
+    closeParen = [")"]
 
     stack = []
     for i in exp:
-        if i in open_list:
+        if i in openParen:
             stack.append(i)
-        elif i in close_list:
-            pos = close_list.index(i)
-            if (len(stack) > 0) and (open_list[pos] == stack[len(stack) - 1]):
+        elif i in closeParen:
+            pos = closeParen.index(i)
+            if (len(stack) > 0) and (openParen[pos] == stack[len(stack) - 1]):
                 stack.pop()
             else:
                 return "Unbalanced"
@@ -34,12 +34,11 @@ def checkBalance(exp):
         return "Unbalanced"
 
 
+# Function to build gate consistency functions for OR gates
 def orGateConsistency(inList):
     # Output is global outCount
     global outCount
-
-    P1Str = ""
-    P2Str = "("
+    P1Str, P2Str = "", "("
 
     # Invert input for product section of equation
     invertList = invert(inList)
@@ -53,17 +52,17 @@ def orGateConsistency(inList):
             P1Str += "(" + invertList[a] + " + ^" + str(outCount) + ") * "
             P2Str += inList[a] + " + "
 
+    # Increment outCount for out variables, and AND product and sum sections of the equations together
     outCount += 1
     output = P1Str + " * " + P2Str
     return ["^" + str(outCount - 1), output]
 
 
+# Function to build gate consistency functions for AND gates
 def andGateConsistency(inList):
     # Output is global outCount
     global outCount
-
-    P1Str = ""
-    P2Str = "("
+    P1Str, P2Str = "", "("
 
     # Invert input for product section of equation
     invertList = invert(inList)
@@ -77,11 +76,13 @@ def andGateConsistency(inList):
             P1Str += "(" + inList[a] + " + ~^" + str(outCount) + ") * "
             P2Str += invertList[a] + " + "
 
+    # Increment outCount for out variables, and AND product and sum sections of the equations together
     outCount += 1
     output = P1Str + " * " + P2Str
     return ["^" + str(outCount - 1), output]
 
 
+# Count occurrences of "(" in a string. Used for extracting nested parentheses sections
 def countLeftParenthesis(str):
     count = 0
     for a in range(0, len(str)):
@@ -128,7 +129,7 @@ def distributiveCheck(uIn):
         newSub = new[:]
         for a in range(0, len(newSub)):
             newSub[a] = newSub[a][2:][:-1]
-            ev = extractVariables(newSub[a])
+            ev = extractVariables(newSub[a], 0)
             inv = invert(ev)
             for b in range(0, len(ev)):
                 newSub[a] = newSub[a].replace(ev[b], inv[b])
@@ -148,21 +149,24 @@ def distributiveCheck(uIn):
     return uIn
 
 
-# Extracts expression side of an equation
+# Extracts expression side of an equation. Index 1 = Expression, Index 0 = Output variable
 def extractExpression(equation):
     sides = re.split("[=]", equation)
     if "." or "+" or "~" in sides[0]:
-        return sides[0].strip()
+        return [sides[1].strip(), sides[0].strip()]
     elif "." or "+" or "~" in sides[1]:
-        return sides[1].strip()
+        return [sides[0].strip(), sides[1].strip()]
     else:
         print("Neither side of equation contains an operator. Exiting!")
         sys.exit()
 
 
 # Extracts all variables from an expression
-def extractVariables(expression):
-    varSet = sorted(set(re.findall(r'[~0-9a-z!]+', expression)))
+def extractVariables(expression, code):
+    if code == 0:  # want to extract the variables from an expression
+        varSet = sorted(set(re.findall(r'[~0-9a-z!]+', expression)))
+    else:  # just want the literals
+        varSet = sorted(set(re.findall(r'[0-9a-z!]+', expression)))
     return varSet
 
 
@@ -203,7 +207,7 @@ def checkFunction(inStr):
         sys.exit()
 
     # Check that the function has balanced parenthesis
-    if checkBalance(extractExpression(uIn)) == "Unbalanced":
+    if checkBalance(extractExpression(uIn)[1]) == "Unbalanced":
         print("Unbalanced parentheses in function. Fix and try again")
         sys.exit()
 
@@ -217,18 +221,18 @@ def testArgLength():
 
 # Main Method
 if __name__ == '__main__':
-    # Take user input from command line
-    # testArgLength()
-    # uIn = str(sys.argv[1])
-    uIn = "~ab + cd * ~ef + ~gh = z"
+    # Take user input from command line and check proper length
+    testArgLength()
+    uIn = str(sys.argv[1])
+    # uIn = "~ab + cd * ~ef + ~gh = xyz"
     print("Input was: " + uIn)
 
+    # Perform checks on the function, remove spaces, extract output and expression side of the equation,
+    # and check for distribution
     checkFunction(uIn)
     uIn = uIn.replace(" ", "")
-
-    e = extractExpression(uIn)
-    uIn = distributiveCheck(e)
-    print(uIn)
+    outVar, ee = extractExpression(uIn)[0], extractExpression(uIn)[1]
+    uIn = distributiveCheck(ee)
 
     if "(" in uIn:
         print("Gonna have to deal with in \"low to high\" structure")
@@ -238,7 +242,7 @@ if __name__ == '__main__':
         agcExp = []
         for a in range(0, len(orSplit)):
             if "*" in orSplit[a]:
-                ev = extractVariables(orSplit[a])
+                ev = extractVariables(orSplit[a], 0)
                 agc = andGateConsistency(ev)
                 agcExp.append(str(agc[1]))
                 orSplit[a] = agc[0]
@@ -249,13 +253,23 @@ if __name__ == '__main__':
         for a in range(0, len(agcExp)):
             fullExp += agcExp[a] + " * "
         fullExp += ogc[1]
-        print(fullExp)
+
+        # Extract literals to be written to file. Ensure they are formatted so Devon's script can read
+        ev = extractVariables(uIn, 1)
+        literals = "\n"
+        for a in range(0, len(ev)):
+            if a != len(ev) - 1:
+                literals += ev[a] + ", "
+            else:
+                literals += ev[a]
+
+        # Open and write to file for Devon's script to read
+        file = open("Tyler/fxn.txt", "w")
+        outFunction = str(outVar) + " = " + fullExp
+        file.write(outFunction)
+        file.write(literals)
+        file.close()
 
     # To-Do
     # Need to parse the expression and format so we can use the gate functions to create a POS
     # Want to parse low to high level and if not then ands first (precedence to whats in the parentheses)
-    # Pass Devon and of all gate consistency functions
-    # Ensure output is readable for Devon's script
-    # fxn.txt
-    # first line with with output variable first
-    # second line with input variables

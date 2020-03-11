@@ -3,4 +3,4 @@ venv/
 .idea/
 
 # Ignore .txt IO Files #
-*.txt
+fxn.txt
