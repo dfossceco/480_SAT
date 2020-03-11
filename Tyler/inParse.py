@@ -55,7 +55,7 @@ def orGateConsistency(inList):
 
     outCount += 1
     output = P1Str + " * " + P2Str
-    return output
+    return ["^" + str(outCount - 1), output]
 
 
 def andGateConsistency(inList):
@@ -79,7 +79,7 @@ def andGateConsistency(inList):
 
     outCount += 1
     output = P1Str + " * " + P2Str
-    return output
+    return ["^" + str(outCount - 1), output]
 
 
 def countLeftParenthesis(str):
@@ -218,26 +218,44 @@ def testArgLength():
 # Main Method
 if __name__ == '__main__':
     # Take user input from command line
-    testArgLength()
-    uIn = str(sys.argv[1])
-    # uIn = "~(ab + ~(cd+~(ef+gh))) * ~(a + b) = z"
+    # testArgLength()
+    # uIn = str(sys.argv[1])
+    uIn = "~ab + cd * ~ef + ~gh = z"
     print("Input was: " + uIn)
 
     checkFunction(uIn)
     uIn = uIn.replace(" ", "")
 
     e = extractExpression(uIn)
-    out = distributiveCheck(e)
-    print(out)
+    uIn = distributiveCheck(e)
+    print(uIn)
 
-    li = ['w', 'x', 'y']
-    x = orGateConsistency(li)
-    y = andGateConsistency(li)
-    print(x)
-    print(y)
+    if "(" in uIn:
+        print("Gonna have to deal with in \"low to high\" structure")
+    else:
+        # Always split on or first and get and gate consistency functions on the list items if necessary
+        orSplit = uIn.split('+')
+        agcExp = []
+        for a in range(0, len(orSplit)):
+            if "*" in orSplit[a]:
+                ev = extractVariables(orSplit[a])
+                agc = andGateConsistency(ev)
+                agcExp.append(str(agc[1]))
+                orSplit[a] = agc[0]
+
+        # Build full expression which ands both and and or consistency functions together
+        fullExp = ""
+        ogc = orGateConsistency(orSplit)
+        for a in range(0, len(agcExp)):
+            fullExp += agcExp[a] + " * "
+        fullExp += ogc[1]
+        print(fullExp)
 
     # To-Do
     # Need to parse the expression and format so we can use the gate functions to create a POS
-    # Pass parse functions to get POS output
-    # Can do this by replacing gate in equation with its defined output variable, ie: (a+b)*c = ^0*c then eval
+    # Want to parse low to high level and if not then ands first (precedence to whats in the parentheses)
+    # Pass Devon and of all gate consistency functions
     # Ensure output is readable for Devon's script
+    # fxn.txt
+    # first line with with output variable first
+    # second line with input variables
