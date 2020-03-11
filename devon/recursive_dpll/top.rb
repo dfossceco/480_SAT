@@ -40,7 +40,7 @@ require "./dpll_obj.rb"
   def complete()
     # puts("Please input a function:")
     # user_in = gets().chomp
-    # system ("./inParse.py #{user_in}")
+    # system ("./inParse.py \"#{user_in}\")
     return get_fxn()
   end # def
 
@@ -81,7 +81,7 @@ require "./dpll_obj.rb"
 
     xor = term_a.concat('+').concat(term_b)
     puts("XOR of the two functions: #{xor}\n\n")
-    # system ("./inParse.py #{xor}")
+    # system ("./inParse.py \"#{user_in}\")
     return get_fxn()
   end # def
 

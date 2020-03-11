@@ -35,5 +35,5 @@ f = sum(m3, m4, m4)
 f = x.~y+~x.y.z
 
 Test for Tylers
-f1 = (~x.~y.~z)+(~x.~y.z)+(~x.y.~z)
-f2 = (~x.~y.~z)+(~x.~y.z)+(x.y.~z)+(x.y.z)
+f1 = ~x.~y.~z+~x.~y.z+~x.y.~z
+f2 = ~x.~y.~z+~x.~y.z+x.y.~z+x.y.z
