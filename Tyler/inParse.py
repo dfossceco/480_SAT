@@ -208,12 +208,19 @@ def checkFunction(inStr):
         sys.exit()
 
 
+# Test length of command line args for server
+def testArgLength():
+    if len(sys.argv) != 2:
+        print("Must use 1 command line argument for an equation, Exiting!")
+        sys.exit()
+
+
 # Main Method
 if __name__ == '__main__':
-    # Take user input
-    print("Input a valid boolean function and include the output variable")
-    # uIn = input()
-    uIn = "~(ab + ~(cd+~(ef+gh))) * ~(a + b) = z"
+    # Take user input from command line
+    testArgLength()
+    uIn = str(sys.argv[1])
+    # uIn = "~(ab + ~(cd+~(ef+gh))) * ~(a + b) = z"
     print("Input was: " + uIn)
 
     checkFunction(uIn)
