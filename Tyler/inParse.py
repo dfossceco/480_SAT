@@ -38,7 +38,7 @@ def checkBalance(exp):
 def orGateConsistency(inList):
     # Output is global outCount
     global outCount
-    P1Str, P2Str = "", "("
+    P1Str, P2Str = "", ""
 
     # Invert input for product section of equation
     invertList = invert(inList)
@@ -46,15 +46,15 @@ def orGateConsistency(inList):
     # Create strings for product and sum section of equation
     for a in range(0, len(inList)):
         if a == len(inList) - 1:  # Last one
-            P1Str += "(" + invertList[a] + " + ^" + str(outCount) + ")"
-            P2Str += inList[a] + " + ~^" + str(outCount) + ")"
+            P1Str += invertList[a] + "+^" + str(outCount)
+            P2Str += inList[a] + "+~^" + str(outCount)
         else:
-            P1Str += "(" + invertList[a] + " + ^" + str(outCount) + ") * "
-            P2Str += inList[a] + " + "
+            P1Str += invertList[a] + "+^" + str(outCount) + "."
+            P2Str += inList[a] + "+"
 
     # Increment outCount for out variables, and AND product and sum sections of the equations together
     outCount += 1
-    output = P1Str + " * " + P2Str
+    output = P1Str + "." + P2Str
     return ["^" + str(outCount - 1), output]
 
 
@@ -62,7 +62,7 @@ def orGateConsistency(inList):
 def andGateConsistency(inList):
     # Output is global outCount
     global outCount
-    P1Str, P2Str = "", "("
+    P1Str, P2Str = "", ""
 
     # Invert input for product section of equation
     invertList = invert(inList)
@@ -70,15 +70,15 @@ def andGateConsistency(inList):
     # Create strings for proudct and sum section of equation
     for a in range(0, len(inList)):
         if a == len(inList) - 1:  # Last one
-            P1Str += "(" + inList[a] + " + ~^" + str(outCount) + ")"
-            P2Str += invertList[a] + " + ^" + str(outCount) + ")"
+            P1Str += inList[a] + "+~^" + str(outCount)
+            P2Str += invertList[a] + "+^" + str(outCount)
         else:
-            P1Str += "(" + inList[a] + " + ~^" + str(outCount) + ") * "
-            P2Str += invertList[a] + " + "
+            P1Str += inList[a] + "+~^" + str(outCount) + "."
+            P2Str += invertList[a] + "+"
 
     # Increment outCount for out variables, and AND product and sum sections of the equations together
     outCount += 1
-    output = P1Str + " * " + P2Str
+    output = P1Str + "." + P2Str
     return ["^" + str(outCount - 1), output]
 
 
@@ -138,9 +138,9 @@ def distributiveCheck(uIn):
         for a in range(0, len(newSub)):
             for b in range(0, len(newSub[a])):
                 if newSub[a][b] == "+":
-                    newSub[a] = newSub[a][:b] + "*" + newSub[a][b + 1:]
+                    newSub[a] = newSub[a][:b] + "." + newSub[a][b + 1:]
                     b += 1
-                if newSub[a][b] == "*":
+                if newSub[a][b] == ".":
                     newSub[a] = newSub[a][:b] + "+" + newSub[a][b + 1:]
 
         # Need to replace in original expression
@@ -222,9 +222,9 @@ def testArgLength():
 # Main Method
 if __name__ == '__main__':
     # Take user input from command line and check proper length
-    testArgLength()
-    uIn = str(sys.argv[1])
-    # uIn = "~ab + cd * ~ef + ~gh = xyz"
+    # testArgLength()
+    # uIn = str(sys.argv[1])
+    uIn = "~ab + cd . ~ef + ~gh = xyz"
     print("Input was: " + uIn)
 
     # Perform checks on the function, remove spaces, extract output and expression side of the equation,
@@ -241,7 +241,7 @@ if __name__ == '__main__':
         orSplit = uIn.split('+')
         agcExp = []
         for a in range(0, len(orSplit)):
-            if "*" in orSplit[a]:
+            if "." in orSplit[a]:
                 ev = extractVariables(orSplit[a], 0)
                 agc = andGateConsistency(ev)
                 agcExp.append(str(agc[1]))
@@ -251,7 +251,7 @@ if __name__ == '__main__':
         fullExp = ""
         ogc = orGateConsistency(orSplit)
         for a in range(0, len(agcExp)):
-            fullExp += agcExp[a] + " * "
+            fullExp += agcExp[a] + "."
         fullExp += ogc[1]
 
         # Extract literals to be written to file. Ensure they are formatted so Devon's script can read
@@ -264,8 +264,8 @@ if __name__ == '__main__':
                 literals += ev[a]
 
         # Open and write to file for Devon's script to read
-        file = open("Tyler/fxn.txt", "w")
-        outFunction = str(outVar) + " = " + fullExp
+        file = open("fxn.txt", "w")
+        outFunction = str(outVar) + "." + fullExp
         file.write(outFunction)
         file.write(literals)
         file.close()
