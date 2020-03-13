@@ -1,4 +1,7 @@
-~(ab + ~(cd+ef)) * ~(a + b) = z
-~(a + b) * ~(c + d) = z
-~(ab + ~(cd+~(ef+gh))) * ~(a + b) = z
-~ab + cd * ~ef + ~gh = z
+~(ab + ~(cd+ef)) . ~(a + b) = z
+~(a + b) . ~(c + d) = z
+~(ab + ~(cd+~(ef+gh))) . ~(a + b) = z
+~ab + cd . ~ef + ~gh = z
+~((cd+ef)+gh) = z
+~(cd+(ef+gh)) = z
+~(ab + ~(cd+ef)) . ~((a+(c+d)) + b) = z

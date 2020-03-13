@@ -93,8 +93,8 @@ def countLeftParenthesis(str):
 
 # Check for potential use of the distributive property
 def distributiveCheck(uIn):
-    iList = []
     if "~(" in uIn:
+        iList = []
         # find all occurrences of "~("
         for a in range(0, len(uIn) - 1):
             if uIn[a] + uIn[a + 1] == "~(":
@@ -113,10 +113,10 @@ def distributiveCheck(uIn):
                         break
                 index += 1
 
-        # Need to test for nested distribution cases
+        # Need to test for and deal with nested distribution cases
         new = sub[:]
         if len(iList) > 1:
-            # Get indices of
+            # Get indices of nesting
             indices = []
             for a in range(len(sub) - 1, 0, -1):
                 if sub[a] in sub[a - 1]:
@@ -129,23 +129,52 @@ def distributiveCheck(uIn):
         newSub = new[:]
         for a in range(0, len(newSub)):
             newSub[a] = newSub[a][2:][:-1]
-            ev = extractVariables(newSub[a], 0)
-            inv = invert(ev)
-            for b in range(0, len(ev)):
-                newSub[a] = newSub[a].replace(ev[b], inv[b])
+            # Replace parentheses sections
+            if "(" and ")" in newSub[a]:
+                pSection = re.findall(r'\(.+?\)', newSub[a])
+                for c in range(0, len(pSection)):
+                    newSub[a] = newSub[a].replace(pSection[c], "%" + str(c))
+                # Replace variables with their inverse
+                ev = extractVariables(newSub[a], 0)
+                inv = invert(ev)
+                for b in range(0, len(ev)):
+                    newSub[a] = newSub[a].replace(ev[b], inv[b])
+                # Replace fake variables with their parentheses sections
+                for d in range(0, len(pSection)):
+                    newSub[a] = newSub[a].replace("%" + str(d), pSection[d])
+            else:
+                # Replace variables with their inverse
+                ev = extractVariables(newSub[a], 0)
+                inv = invert(ev)
+                for b in range(0, len(ev)):
+                    newSub[a] = newSub[a].replace(ev[b], inv[b])
 
         # distribution for operators
         for a in range(0, len(newSub)):
+            # Check if there
+            if "(" and ")" in newSub[a]:
+                pSection = re.findall(r'\(.+?\)', newSub[a])
+                for c in range(0, len(pSection)):
+                    newSub[a] = newSub[a].replace(pSection[c], "%" + str(c))
+            # Swap operators
             for b in range(0, len(newSub[a])):
                 if newSub[a][b] == "+":
                     newSub[a] = newSub[a][:b] + "." + newSub[a][b + 1:]
                     b += 1
                 if newSub[a][b] == ".":
                     newSub[a] = newSub[a][:b] + "+" + newSub[a][b + 1:]
+            # Replace fake variables with their parentheses sections if necessary
+            if "%" in newSub[a]:
+                for d in range(0, len(pSection)):
+                    newSub[a] = newSub[a].replace("%" + str(d), pSection[d])
 
         # Need to replace in original expression
         for a in range(0, len(sub)):
             uIn = uIn.replace(sub[a], newSub[a])
+
+        # Check if distribution remains and if so recursively attempt to distribute
+        if "~(" in uIn:
+            uIn = distributiveCheck(uIn)
     return uIn
 
 
@@ -164,9 +193,9 @@ def extractExpression(equation):
 # Extracts all variables from an expression
 def extractVariables(expression, code):
     if code == 0:  # want to extract the variables from an expression
-        varSet = sorted(set(re.findall(r'[~0-9a-z!]+', expression)))
+        varSet = sorted(set(re.findall(r'[~%0-9a-z!]+', expression)))
     else:  # just want the literals
-        varSet = sorted(set(re.findall(r'[0-9a-z!]+', expression)))
+        varSet = sorted(set(re.findall(r'[%0-9a-z!]+', expression)))
     return varSet
 
 
@@ -222,9 +251,9 @@ def testArgLength():
 # Main Method
 if __name__ == '__main__':
     # Take user input from command line and check proper length
-    # testArgLength()
-    # uIn = str(sys.argv[1])
-    uIn = "~ab + cd . ~ef + ~gh = xyz"
+    testArgLength()
+    uIn = str(sys.argv[1])
+    # uIn = "~(ab + ~(cd+ef)) . ~((a+(c+d)) + b) = z"
     print("Input was: " + uIn)
 
     # Perform checks on the function, remove spaces, extract output and expression side of the equation,
@@ -235,7 +264,7 @@ if __name__ == '__main__':
     uIn = distributiveCheck(ee)
 
     if "(" in uIn:
-        print("Gonna have to deal with in \"low to high\" structure")
+        print("Gonna have to deal with parentheses")
     else:
         # Always split on or first and get and gate consistency functions on the list items if necessary
         orSplit = uIn.split('+')
@@ -247,7 +276,7 @@ if __name__ == '__main__':
                 agcExp.append(str(agc[1]))
                 orSplit[a] = agc[0]
 
-        # Build full expression which ands both and and or consistency functions together
+        # Build full expression which ANDs both AND and OR consistency functions together
         fullExp = ""
         ogc = orGateConsistency(orSplit)
         for a in range(0, len(agcExp)):
