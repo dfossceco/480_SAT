@@ -292,9 +292,12 @@ if __name__ == '__main__':
             else:
                 literals += ev[a]
 
-        # Open and write to file for Devon's script to read
-        file = open("fxn.txt", "w")
+        # Replace final outCount occurrences with out variable and build final function
+        fullExp = fullExp.replace("^" + str(outCount - 1), str(outVar))
         outFunction = str(outVar) + "." + fullExp
+
+        # Open and write to file for Devon's script to read
+        file = open("Tyler/fxn.txt", "w")
         file.write(outFunction)
         file.write(literals)
         file.close()
