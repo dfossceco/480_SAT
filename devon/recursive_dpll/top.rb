@@ -8,10 +8,21 @@ require "./dpll_obj.rb"
 # If fxn is unSAT, return all assignments that led to this conclusion
 # If fxn is SAT, return all assignments that led to this conclusion
 
+# CNF
+# Super secret developer debugging tool
+  def cnf()
+    puts("YOU ARE NOW IN SUPER SECRET DEVELOPER DEBUGGING MODE\n\n")
+    puts("Input cnf form equation:\n")
+    fxn = gets().chomp.split('.')
+    puts("Input the comma seperated inputs:\n")
+    inputs = gets().chomp.split('')
+    return fxn, inputs
+  end 
+
 # GET FUNCTION
 # Read the function and the list of inputs from the file
  def get_fxn()
-  fxn_file = File.open("fxn.txt", "r")
+  fxn_file = File.open("./fxn.txt", "r") # *******************************************************************
   fxn = ''
   inputs = ''
   i = 0
@@ -28,7 +39,7 @@ require "./dpll_obj.rb"
     i += 1
   end # each do
   fxn_file.close
-  # system("rm fxn.txt")
+  #system("rm ../../Tyler/fxn.txt") # *******************************************************************
   return fxn, inputs
  end # def
 
@@ -38,9 +49,10 @@ require "./dpll_obj.rb"
 # Second line will contain the list of inputs
 # TODO: Who is going to print the CNF form?
   def complete()
-    # puts("Please input a function:")
-    # user_in = gets().chomp
-    # system ("./inParse.py \"#{user_in}\")
+    puts("Please input a function in the form: BOOLEAN EXPRESSION = OUTPUT VARIABLE")
+    user_in = gets().chomp
+    puts
+    system ("./inParse.py \"#{user_in}\"") # *******************************************************************
     return get_fxn()
   end # def
 
@@ -81,7 +93,7 @@ require "./dpll_obj.rb"
 
     xor = term_a.concat('+').concat(term_b)
     puts("XOR of the two functions: #{xor}\n\n")
-    # system ("./inParse.py \"#{user_in}\")
+    # system ("python inParse.py \"#{user_in}\")
     return get_fxn()
   end # def
 
@@ -114,7 +126,7 @@ require "./dpll_obj.rb"
 
   fxn = ''
   inputs = ''
-  dpll = DPLL.new(false, {})
+  dpll = DPLL.new(true, {})
 
   if (run_type.eql?('complete') || run_type.eql?('partial'))
     fxn, inputs = complete()
@@ -123,6 +135,8 @@ require "./dpll_obj.rb"
     end # if
   elsif (run_type.eql?('multi'))
     fxn, inputs = multi()
+  elsif (run_type.eql?('cnf'))
+    fxn, inputs = cnf()
   else
     abort ('INPUT MODE WAS NOT RECOGNIZED!')
   end # if else
@@ -130,5 +144,5 @@ require "./dpll_obj.rb"
   status = dpll.dpll_rec(fxn)
   assignments = dpll.get_assignments()
   assignments = reduce(inputs, assignments)
-  puts("From the following assignments:\n\t#{assignments}\n\n")
+  puts("From the following assignments:\n\t#{assignments.sort.to_h}\n\n")
   puts("The solver determined that the function is: #{status}\n\n")
