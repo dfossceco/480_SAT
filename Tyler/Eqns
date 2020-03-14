@@ -5,3 +5,12 @@
 ~((cd+ef)+gh) = z
 ~(cd+(ef+gh)) = z
 ~(ab + ~(cd+ef)) . ~((a+(c+d)) + b) = z
+(a+~(c.d)) = z
+(a+b.c) = z
+(x+y).(~x+z) = h
+(x+y.z).(~x+z) = h
+
+
+Working On:
+(x+y).(~x.(z+y)) = h
+(~x.(z+(y+w))) = h

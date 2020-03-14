@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sys
 import re
 
@@ -16,6 +17,7 @@ def invert(inList):
     return invertList
 
 
+# Function to check that the parentheses in an expression are balanced
 def checkBalance(exp):
     openParen = ["("]
     closeParen = [")"]
@@ -67,7 +69,7 @@ def andGateConsistency(inList):
     # Invert input for product section of equation
     invertList = invert(inList)
 
-    # Create strings for proudct and sum section of equation
+    # Create strings for product and sum section of equation
     for a in range(0, len(inList)):
         if a == len(inList) - 1:  # Last one
             P1Str += inList[a] + "+~^" + str(outCount)
@@ -94,8 +96,8 @@ def countLeftParenthesis(str):
 # Check for potential use of the distributive property
 def distributiveCheck(uIn):
     if "~(" in uIn:
-        iList = []
         # find all occurrences of "~("
+        iList = []
         for a in range(0, len(uIn) - 1):
             if uIn[a] + uIn[a + 1] == "~(":
                 iList.append(a)
@@ -173,9 +175,82 @@ def distributiveCheck(uIn):
             uIn = uIn.replace(sub[a], newSub[a])
 
         # Check if distribution remains and if so recursively attempt to distribute
-        if "~(" in uIn:
-            uIn = distributiveCheck(uIn)
+        uIn = distributiveCheck(uIn)
     return uIn
+
+
+# Check for parentheses and evaluate from low to high level
+def parenthesesCheck(uIn):
+    if "(" and ")" in uIn:
+        fullExp = ""
+
+        # find all occurrences of "("
+        pList = []
+        for a in range(0, len(uIn)):
+            if uIn[a] == "(":
+                pList.append(a)
+
+        # Check for parentheses enclosing full function with no nesting
+        if len(pList) == 1 and uIn[0] == "(" and uIn[len(uIn)-1] == ")":
+            return "", uIn[1:][:-1]
+
+        # Extract parentheses sections
+        sub = [""] * len(pList)
+        for a in range(0, len(pList)):
+            index = pList[a]
+            rCount = 0
+            while True:
+                sub[a] += uIn[index]
+                if uIn[index] == ")":
+                    rCount += 1
+                    if rCount == countLeftParenthesis(sub[a]):
+                        break
+                index += 1
+
+        # Need to test for and deal with nested parentheses cases
+        indices = []
+        if len(pList) > 1:
+            for a in range(len(sub) - 1, 0, -1):
+                if sub[a] in sub[a - 1]:
+                    indices.append(a)
+
+        if len(indices) > 0:
+            print("nesting --> TO DO")
+        else:
+            for a in range(0, len(sub)):
+                inside = sub[a][1:][:-1]
+                # Both operators within the parentheses
+                if "." in sub[a] and "+" in sub[a]:
+                    orSplitPar = inside.split('+')
+                    agcExpPar = []
+                    # Split on ORs first
+                    for b in range(0, len(orSplitPar)):
+                        if "." in orSplitPar[b]:
+                            evPar = extractVariables(orSplitPar[b], 0)
+                            agcPar = andGateConsistency(evPar)
+                            agcExpPar.append(str(agcPar[1]))
+                            orSplitPar[b] = agcPar[0]
+                    # Start building output function
+                    for c in range(0, len(agcExpPar)):
+                        fullExp += agcExpPar[c] + "."
+                    ogcPar = orGateConsistency(orSplitPar)
+                    if len(orSplitPar) > 1:
+                        fullExp += ogcPar[1] + "."
+                    uIn = uIn.replace(sub[a], ogcPar[0])
+                # ANDs only within the parentheses
+                if "." in sub[a] and "+" not in sub[a]:
+                    andPar = andGateConsistency(extractVariables(inside, 0))
+                    fullExp += andPar[1] + "."
+                    uIn = uIn.replace(sub[a], andPar[0])
+                # ORs only within the parentheses
+                if "." not in sub[a] and "+" in sub[a]:
+                    orPar = orGateConsistency(extractVariables(inside, 0))
+                    fullExp += orPar[1] + "."
+                    uIn = uIn.replace(sub[a], orPar[0])
+
+        return fullExp, uIn
+    else:
+        return "", uIn
 
 
 # Extracts expression side of an equation. Index 1 = Expression, Index 0 = Output variable
@@ -193,9 +268,9 @@ def extractExpression(equation):
 # Extracts all variables from an expression
 def extractVariables(expression, code):
     if code == 0:  # want to extract the variables from an expression
-        varSet = sorted(set(re.findall(r'[~%0-9a-z!]+', expression)))
+        varSet = sorted(set(re.findall(r'[~%^0-9a-z]+', expression)))
     else:  # just want the literals
-        varSet = sorted(set(re.findall(r'[%0-9a-z!]+', expression)))
+        varSet = sorted(set(re.findall(r'[0-9a-z]+', expression)))
     return varSet
 
 
@@ -235,6 +310,10 @@ def checkFunction(inStr):
         print("Input cannot contain \'^\'")
         sys.exit()
 
+    if "%" in inStr:
+        print("Input cannot contain \'%\'")
+        sys.exit()
+
     # Check that the function has balanced parenthesis
     if checkBalance(extractExpression(uIn)[1]) == "Unbalanced":
         print("Unbalanced parentheses in function. Fix and try again")
@@ -261,36 +340,34 @@ if __name__ == '__main__':
     checkFunction(uIn)
     uIn = uIn.replace(" ", "")
     outVar, ee = extractExpression(uIn)[0], extractExpression(uIn)[1]
+    eVarFinal = extractVariables(ee, 1)
     uIn = distributiveCheck(ee)
+    fullExp, uIn = parenthesesCheck(uIn)
 
-    if "(" in uIn:
-        print("Gonna have to deal with parentheses")
-    else:
-        # Always split on or first and get and gate consistency functions on the list items if necessary
-        orSplit = uIn.split('+')
-        agcExp = []
-        for a in range(0, len(orSplit)):
-            if "." in orSplit[a]:
-                ev = extractVariables(orSplit[a], 0)
-                agc = andGateConsistency(ev)
-                agcExp.append(str(agc[1]))
-                orSplit[a] = agc[0]
+    # Always split on OR first and get and gate consistency functions on the list items if necessary
+    orSplit = uIn.split('+')
+    agcExp = []
+    for a in range(0, len(orSplit)):
+        if "." in orSplit[a]:
+            ev = extractVariables(orSplit[a], 0)
+            agc = andGateConsistency(ev)
+            agcExp.append(str(agc[1]))
+            orSplit[a] = agc[0]
 
-        # Build full expression which ANDs both AND and OR consistency functions together
-        fullExp = ""
+    # Build full expression which ANDs both AND and OR consistency functions together
+    for a in range(0, len(agcExp)):
+        fullExp += agcExp[a] + "."
+    if len(orSplit) > 1:
         ogc = orGateConsistency(orSplit)
-        for a in range(0, len(agcExp)):
-            fullExp += agcExp[a] + "."
         fullExp += ogc[1]
 
-        # Extract literals to be written to file. Ensure they are formatted so Devon's script can read
-        ev = extractVariables(uIn, 1)
-        literals = "\n"
-        for a in range(0, len(ev)):
-            if a != len(ev) - 1:
-                literals += ev[a] + ", "
-            else:
-                literals += ev[a]
+    # Extract literals to be written to file. Ensure they are formatted so Devon's script can read
+    literals = "\n"
+    for a in range(0, len(eVarFinal)):
+        if a != len(eVarFinal) - 1:
+            literals += eVarFinal[a] + ", "
+        else:
+            literals += eVarFinal[a]
 
         # Replace final outCount occurrences with out variable and build final function
         fullExp = fullExp.replace("^" + str(outCount - 1), str(outVar))
