@@ -9,8 +9,6 @@
 (a+b.c) = z
 (x+y).(~x+z) = h
 (x+y.z).(~x+z) = h
-
-
-Working On:
+(a+(b+(c+d)))+e = z
 (x+y).(~x.(z+y)) = h
 (~x.(z+(y+w))) = h

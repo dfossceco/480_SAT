@@ -123,7 +123,7 @@ def distributiveCheck(uIn):
             for a in range(len(sub) - 1, 0, -1):
                 if sub[a] in sub[a - 1]:
                     indices.append(a)
-
+            # Perform recursion on nested sections
             for a in range(0, len(indices)):
                 new[indices[a] - 1] = new[indices[a] - 1].replace(sub[indices[a]], distributiveCheck(new[indices[a]]))
 
@@ -190,10 +190,6 @@ def parenthesesCheck(uIn):
             if uIn[a] == "(":
                 pList.append(a)
 
-        # Check for parentheses enclosing full function with no nesting
-        if len(pList) == 1 and uIn[0] == "(" and uIn[len(uIn)-1] == ")":
-            return "", uIn[1:][:-1]
-
         # Extract parentheses sections
         sub = [""] * len(pList)
         for a in range(0, len(pList)):
@@ -208,17 +204,35 @@ def parenthesesCheck(uIn):
                 index += 1
 
         # Need to test for and deal with nested parentheses cases
+        new = sub[:]
         indices = []
         if len(pList) > 1:
             for a in range(len(sub) - 1, 0, -1):
                 if sub[a] in sub[a - 1]:
                     indices.append(a)
 
+        # Nesting case
         if len(indices) > 0:
-            print("nesting --> TO DO")
+            # Perform recursion on nested sections
+            for a in range(0, len(indices)):
+                pc = parenthesesCheck(new[indices[a]])
+                fullExp += pc[0]
+                new[indices[a] - 1] = new[indices[a] - 1].replace(sub[indices[a]], pc[1])
+
+            # Need to replace in original expression
+            for a in range(0, len(sub)):
+                uIn = uIn.replace(sub[a], new[a])
+
+            # Check if distribution remains and if so recursively attempt to distribute
+            fExpRecursive, uIn = parenthesesCheck(uIn)
+            fullExp += fExpRecursive
+
+        # No nesting case
         else:
             for a in range(0, len(sub)):
+                # Remove outside parentheses
                 inside = sub[a][1:][:-1]
+
                 # Both operators within the parentheses
                 if "." in sub[a] and "+" in sub[a]:
                     orSplitPar = inside.split('+')
@@ -237,11 +251,13 @@ def parenthesesCheck(uIn):
                     if len(orSplitPar) > 1:
                         fullExp += ogcPar[1] + "."
                     uIn = uIn.replace(sub[a], ogcPar[0])
+
                 # ANDs only within the parentheses
                 if "." in sub[a] and "+" not in sub[a]:
                     andPar = andGateConsistency(extractVariables(inside, 0))
                     fullExp += andPar[1] + "."
                     uIn = uIn.replace(sub[a], andPar[0])
+
                 # ORs only within the parentheses
                 if "." not in sub[a] and "+" in sub[a]:
                     orPar = orGateConsistency(extractVariables(inside, 0))
@@ -305,11 +321,12 @@ def checkFunction(inStr):
         print("Invalid function. Only one \'=\' allowed")
         sys.exit()
 
-    # Check that ^ is not in the input as it is used for output indicator later
+    # Check that ^ is not in the input as it is used for output indicator in the distribution functionS
     if "^" in inStr:
         print("Input cannot contain \'^\'")
         sys.exit()
 
+    # Check that % is not in the input as it is used for output indicator later
     if "%" in inStr:
         print("Input cannot contain \'%\'")
         sys.exit()
@@ -332,8 +349,7 @@ if __name__ == '__main__':
     # Take user input from command line and check proper length
     testArgLength()
     uIn = str(sys.argv[1])
-    # uIn = "~(ab + ~(cd+ef)) . ~((a+(c+d)) + b) = z"
-    print("Input was: " + uIn)
+    print("Input: " + uIn)
 
     # Perform checks on the function, remove spaces, extract output and expression side of the equation,
     # and check for distribution
@@ -369,16 +385,13 @@ if __name__ == '__main__':
         else:
             literals += eVarFinal[a]
 
-        # Replace final outCount occurrences with out variable and build final function
-        fullExp = fullExp.replace("^" + str(outCount - 1), str(outVar))
-        outFunction = str(outVar) + "." + fullExp
+    # Replace final outCount occurrences with out variable and build final function
+    fullExp = fullExp.replace("^" + str(outCount - 1), str(outVar))
+    outFunction = str(outVar) + "." + fullExp
+    print("Output: " + outFunction)
 
-        # Open and write to file for Devon's script to read
-        file = open("Tyler/fxn.txt", "w")
-        file.write(outFunction)
-        file.write(literals)
-        file.close()
-
-    # To-Do
-    # Need to parse the expression and format so we can use the gate functions to create a POS
-    # Want to parse low to high level and if not then ands first (precedence to whats in the parentheses)
+    # Open and write to file for Devon's script to read
+    file = open("Tyler/fxn.txt", "w")
+    file.write(outFunction)
+    file.write(literals)
+    file.close()
