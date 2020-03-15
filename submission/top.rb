@@ -54,7 +54,7 @@ require "./dpll_obj.rb"
   end # times do
   fxn.delete('1')
   puts("The CNF form of the function is: #{fxn}\n\n")
-  puts("The inputs to the fucntion are: #{inputs}\n\n")
+  puts("The inputs to the function are: #{inputs}\n\n")
   return fxn, inputs
  end # def
 
