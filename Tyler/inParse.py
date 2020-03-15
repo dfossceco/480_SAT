@@ -385,8 +385,10 @@ if __name__ == '__main__':
         else:
             literals += eVarFinal[a]
 
-    # Replace final outCount occurrences with out variable and build final function
+    # Replace final outCount occurrences with out variable, remove final "." if necessary, and build final function
     fullExp = fullExp.replace("^" + str(outCount - 1), str(outVar))
+    if fullExp[len(fullExp)-1] == ".":
+        fullExp = fullExp[:-1]
     outFunction = str(outVar) + "." + fullExp
     print("Output: " + outFunction)
 
