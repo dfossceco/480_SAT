@@ -59,10 +59,8 @@ require "./dpll_obj.rb"
  end # def
 
 # COMPLETE
-# TODO: Let Tyler's script run and have it write to fxn.txt
 # First line will contain the function
 # Second line will contain the list of inputs
-# TODO: Who is going to print the CNF form?
   def complete()
     puts("Please input a function in the form: BOOLEAN EXPRESSION = OUTPUT VARIABLE")
     user_in = gets().chomp

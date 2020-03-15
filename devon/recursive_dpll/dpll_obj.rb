@@ -1,5 +1,5 @@
-# TODO: Maybe have it so it only runs unit clause / pure lit
-# if that term exists
+# Class object for a recursive decision and deduction DPLL algorithm
+
 class DPLL
 # Instance verbose and assignments variables
   def initialize (verbose, all_assignments)
