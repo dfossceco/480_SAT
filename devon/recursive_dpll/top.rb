@@ -22,24 +22,39 @@ require "./dpll_obj.rb"
 # GET FUNCTION
 # Read the function and the list of inputs from the file
  def get_fxn()
-  fxn_file = File.open("./fxn.txt", "r") # *******************************************************************
+  fxn_file = File.open("./fxn.txt", "r")
   fxn = ''
   inputs = ''
   i = 0
   fxn_file.each do |line|
     if (i == 0)
       fxn = line.chomp
-      puts("The CNF form of the function is: #{fxn}\n\n")
       fxn = fxn.split('.')
     else
       inputs = line.chomp
-      puts("The inputs to the fucntion are: #{inputs}\n\n")
       inputs = inputs.split(',')
     end # if else
     i += 1
   end # each do
   fxn_file.close
-  #system("rm ../../Tyler/fxn.txt") # *******************************************************************
+  # If the function contains a term with a literal and its complement,
+  # that term should reduce to 1
+  # If a term contains multiple of the same literal, remove the duplicates
+  fxn.length.times do |index|
+    term = fxn[index].split('+').uniq.sort
+    term.each do |literal|
+      if (!literal.include?('~'))
+        if (term.include?('~'.concat(literal)))
+          fxn[index] = '1'
+        else
+          fxn[index] = term.join('+')
+        end # if else
+      end # if
+    end # each do
+  end # times do
+  fxn.delete('1')
+  puts("The CNF form of the function is: #{fxn}\n\n")
+  puts("The inputs to the fucntion are: #{inputs}\n\n")
   return fxn, inputs
  end # def
 
@@ -52,7 +67,7 @@ require "./dpll_obj.rb"
     puts("Please input a function in the form: BOOLEAN EXPRESSION = OUTPUT VARIABLE")
     user_in = gets().chomp
     puts
-    system ("./inParse.py \"#{user_in}\"") # *******************************************************************
+    system ("./inParse.py \"#{user_in}\"")
     return get_fxn()
   end # def
 
@@ -78,22 +93,28 @@ require "./dpll_obj.rb"
 # Pass that result to Tyler's script to get CNF
 # Return the CNF result
   def multi()
-    puts('Input your first function:')
+    puts('Input your first function with no output variable:')
     fxn1 = gets().chomp
-    puts('Input your second function:')
+    puts('Input your second function with no output variable:')
     fxn2 = gets().chomp
 
-    fxn1 = '('.concat(fxn1).concat(')')
-    fxn2 = '('.concat(fxn2).concat(')')
-    not_fxn1 = '~'.concat(fxn1)
-    not_fxn2 = '~'.concat(fxn2)
+    # fxn1 = '('.concat(fxn1).concat(')')
+    # fxn2 = '('.concat(fxn2).concat(')')
+    not_fxn1 = '~('.concat(fxn1).concat(')')
+    not_fxn2 = '~('.concat(fxn2).concat(')')
 
-    term_a = '('.concat(fxn1).concat('.').concat(not_fxn2).concat(')')
-    term_b = '('.concat(not_fxn1).concat('.').concat(fxn2).concat(')')
+    term_a = '('.concat(fxn1).concat(' + ').concat(fxn2).concat(')')
+    term_b = '('.concat(not_fxn1).concat(' + ').concat(not_fxn2).concat(')')
 
-    xor = term_a.concat('+').concat(term_b)
+    xor = term_a.concat(' . ').concat(term_b).concat('=OUT')
     puts("XOR of the two functions: #{xor}\n\n")
-    # system ("python inParse.py \"#{user_in}\")
+    begin
+      system ("./inParse.py \"#{xor}\"")  
+    rescue IndexError => e
+      abort
+    end
+    
+
     return get_fxn()
   end # def
 
@@ -126,7 +147,7 @@ require "./dpll_obj.rb"
 
   fxn = ''
   inputs = ''
-  dpll = DPLL.new(true, {})
+  dpll = DPLL.new(false, {})
 
   if (run_type.eql?('complete') || run_type.eql?('partial'))
     fxn, inputs = complete()

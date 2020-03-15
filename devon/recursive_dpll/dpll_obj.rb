@@ -187,7 +187,10 @@ class DPLL
               term.delete_at(term.index('~'.concat(literal)))
               t_fxn[index] = term.join('+')
             else
-              abort ('Something has gone horribly wrong!')
+              next
+              # puts("#{literal} = #{value}")
+              # puts("#{t_fxn[index]}")
+              # abort ('Something has gone horribly wrong!')
             end # if elsif
           end # if else
         end # if  
