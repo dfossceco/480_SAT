@@ -355,7 +355,7 @@ if __name__ == '__main__':
     # and check for distribution
     checkFunction(uIn)
     uIn = uIn.replace(" ", "")
-    outVar, ee = extractExpression(uIn)[0], extractExpression(uIn)[1]
+    ee, outVar = extractExpression(uIn)[0], extractExpression(uIn)[1]
     eVarFinal = extractVariables(ee, 1)
     uIn = distributiveCheck(ee)
     fullExp, uIn = parenthesesCheck(uIn)
